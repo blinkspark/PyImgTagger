@@ -21,6 +21,24 @@ class Data:
     self.images = list(filter(self.isImage, flist))
     self.index = 0
 
+  def next(self):
+    if len(self.images) <= 0:
+      return
+    self.index = (self.index + 1) % len(self.images)
+    self.img = self.getImg()
+
+  def pre(self):
+    if len(self.images) <= 0:
+      return
+    self.index = (self.index - 1) % len(self.images)
+    self.img = self.getImg()
+
+  def getImg(self):
+    if self.img == None and len(self.images) > 0:
+      self.img = Image.open(
+          os.path.join(self.currentDIr, self.images[self.index]))
+    return self.img
+
   def isImage(self, fname):
     return os.path.splitext(fname)[1].lower() in [
         ".jpg", ".png", ".jpeg", ".webp"
@@ -43,13 +61,15 @@ class App(QMainWindow):
     self.mainLayout.setSpacing(0)
     self.mainLayout.setContentsMargins(0, 0, 0, 0)
     self.mainWidget.setLayout(self.mainLayout)
-    self.mainLayout.setColumnStretch(0, 8)
-    self.mainLayout.setColumnStretch(1, 2)
-    self.mainLayout.setColumnMinimumWidth(0, 400)
-    self.mainLayout.setColumnMinimumWidth(1, 200)
+    self.mainLayout.setColumnStretch(0, 9)
+    self.mainLayout.setColumnStretch(1, 1)
+    self.mainLayout.setColumnMinimumWidth(0, 350)
+    self.mainLayout.setColumnMinimumWidth(1, 150)
+    self.mainLayout.setRowMinimumHeight(0, 400)
 
     self.imageLabel = QLabel("Test")
     self.imageLabel.setAlignment(Qt.AlignCenter)
+    self.imageLabel.setMinimumSize(100, 100)
     self.imageLabel.setStyleSheet("background-color: blue")
     self.mainLayout.addWidget(self.imageLabel, 0, 0)
 
@@ -57,7 +77,6 @@ class App(QMainWindow):
     self.testLabel.setStyleSheet("background-color: red")
     self.testLabel.setAlignment(Qt.AlignCenter)
     self.mainLayout.addWidget(self.testLabel, 0, 1)
-
 
     self.fileMenu = QMenu("File")
     self.fileMenu.addAction("Open", self.open_file)
