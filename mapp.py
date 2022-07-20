@@ -68,6 +68,9 @@ class App(QMainWindow):
 
   def open_file(self):
     print("Open dir")
+    testLa = QLabel("Test")
+    testLa.setStyleSheet("background-color: yellow")
+    self.mainLayout.addWidget(testLa, 0, 2)
 
   def exit(self):
     print("Exit")
