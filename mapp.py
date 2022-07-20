@@ -5,18 +5,23 @@ from PySide6.QtCore import QCoreApplication, Signal, Slot, QObject
 import sys
 from PIL import Image, ImageQt
 from dataclasses import dataclass, field
+import json
 
 tr = QCoreApplication.translate
 
 
 class Data(QObject):
-  currentDir: str = "."
+  currentDir: str = '.'
   index: int = 0
   images: list[str] = []
   img: Image = None
   imgUpdateSig = Signal()
   tagsChanged = Signal()
   tags: list[str] = []
+
+  def save(self):
+    with open(os.path.join(self.currentDir, 'data.json'), 'w') as f:
+      json.dump(self, f)
 
   def init(self):
     self.open_dir()
@@ -55,12 +60,12 @@ class Data(QObject):
 
   def isImage(self, fname):
     return os.path.splitext(fname)[1].lower() in [
-        ".jpg", ".png", ".jpeg", ".webp"
+        '.jpg', '.png', '.jpeg', '.webp'
     ]
 
 
 class App(QMainWindow):
-  ctx: str = "MainMenu"
+  ctx: str = 'MainMenu'
 
   def __init__(self):
     super(App, self).__init__()
@@ -72,10 +77,10 @@ class App(QMainWindow):
     return tr(self.ctx, txt)
 
   def init_gui(self):
-    self.setWindowTitle(self.tr("Image Tagger"))
+    self.setWindowTitle(self.tr('Image Tagger'))
     self.resize(600, 400)
     self.mainWidget = QWidget()
-    self.mainWidget.setStyleSheet("margin: 0px; padding: 0px;")
+    self.mainWidget.setStyleSheet('margin: 0px; padding: 0px;')
     self.mainLayout = QGridLayout()
     self.mainLayout.setSpacing(0)
     self.mainLayout.setContentsMargins(0, 0, 0, 0)
@@ -100,7 +105,8 @@ class App(QMainWindow):
     # tagEdit
     self.tagEdit = QLineEdit()
     self.tagEdit.returnPressed.connect(self.tagEditReturnPressed)
-    self.tagEdit.setPlaceholderText(self.tr("Enter tag"))
+    self.tagEdit.setPlaceholderText(self.tr('Enter tag'))
+    self.tagEdit.setFocusPolicy(Qt.ClickFocus)
     self.sideBarLayout.addWidget(self.tagEdit)
     # tagList
     self.tagList = QWidget()
@@ -113,9 +119,10 @@ class App(QMainWindow):
 
     self.mainLayout.addWidget(self.sideBar, 0, 1)
 
-    self.fileMenu = QMenu(self.tr("File"))
-    self.fileMenu.addAction(self.tr("Open"), self.open_file)
-    self.fileMenu.addAction(self.tr("File"), self.exit)
+    self.fileMenu = QMenu(self.tr('File'))
+    self.fileMenu.addAction(self.tr('Open'), self.open_file)
+    self.fileMenu.addAction(self.tr('Save'), self.save_file)
+    self.fileMenu.addAction(self.tr('File'), self.exit)
     self.menuBar().addMenu(self.fileMenu)
 
     # signals
@@ -124,8 +131,11 @@ class App(QMainWindow):
 
     self.setCentralWidget(self.mainWidget)
 
+  def save_file(self):
+    self.data.save()
+
   def open_file(self):
-    dir = QFileDialog.getExistingDirectory(self, self.tr("Open Directory"))
+    dir = QFileDialog.getExistingDirectory(self, self.tr('Open Directory'))
     if not dir:
       return
     self.data.currentDir = dir
@@ -141,7 +151,8 @@ class App(QMainWindow):
     tag = self.tagEdit.text()
     if tag:
       self.data.append_tag(tag)
-    self.tagEdit.setText("")
+    self.tagEdit.setText('')
+    self.setFocus()
 
   def showEvent(self, event: QShowEvent) -> None:
     super().showEvent(event)
@@ -174,11 +185,12 @@ class App(QMainWindow):
       item = QCheckBox(tag)
       # item.setAlignment(Qt.AlignCenter)
       item.setMinimumSize(100, 20)
+      item.setFocusPolicy(Qt.NoFocus)
       self.tagListLayout.addWidget(item)
       self.tagListItems.append(item)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
   app = QApplication(sys.argv)
   w = App()
   w.show()
